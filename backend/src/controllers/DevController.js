@@ -37,12 +37,47 @@ module.exports = {
     res.json(dev);
   },
 
-  // TODO: create update and destroy feature
   async update(req, res) {
-    res.json({});
+    const { id } = req.params;
+
+    const { techs, latitude, longitude } = req.body;
+
+    const techsArray = parseStringAsArray(techs);
+
+    try {
+      let dev = await Dev.findOne({ _id: id });
+
+      if (dev) {
+        const location = {
+          type: 'Point',
+          coordinates: [longitude, latitude],
+        };
+
+        dev.techs = techsArray;
+        dev.location = location;
+
+        await dev.save();
+
+        return res.json(dev);
+      }
+    } catch (err) {}
+
+    res.status(404).json({ error: 'User does not exist' });
   },
 
   async destroy(req, res) {
-    res.json({});
+    const { id } = req.params;
+
+    try {
+      let dev = await Dev.findOne({ _id: id });
+
+      if (dev) {
+        await Dev.deleteOne({ _id: id });
+
+        return res.json({ success: true });
+      }
+    } catch (err) {}
+
+    return res.status(404).json({ error: 'User does not exist' });
   }
 };
